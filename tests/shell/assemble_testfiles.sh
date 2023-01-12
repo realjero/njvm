@@ -1,4 +1,5 @@
-cd testfiles;
+cd ..
+mkdir "bin"
 for t in asm/*.asm; do
   file="${t%.*}"
   fileoexten="${file##*/}"

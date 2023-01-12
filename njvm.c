@@ -2,6 +2,10 @@
 #include "instruction.h"
 #include "support.h"
 
+/*
+ * gcc -g -Wall -std=c99 -pedantic -I./include -L./lib njvm.c instruction.c stack.c support.c -lbigint -o vm
+ */
+
 NinjaVM njvm;
 
 NinjaVM vm_check_binary_format(NinjaVM vm) {
@@ -10,6 +14,7 @@ NinjaVM vm_check_binary_format(NinjaVM vm) {
 
     if(strcmp(binary_format, BINARY_FORMAT) != 0) {
         printf("BINARY_FORMAT error");
+        exit(0);
     }
     return vm;
 }
@@ -62,7 +67,13 @@ NinjaVM vm_load_program(NinjaVM vm) {
     return vm;
 }
 
-NinjaVM vm_init(NinjaVM vm, char file[]) {
+NinjaVM vm_init_debug(NinjaVM vm, bool debug) {
+    vm.debugger.breakpoint_set = debug;
+    vm.debugger.breakpoint = 0;
+    return vm;
+}
+
+NinjaVM vm_init(NinjaVM vm, char file[], bool debug) {
     if((vm.file = fopen(file, "r")) == NULL) {
         printf("Error: cannot open code file '%s'", file);
         exit(0);
@@ -74,9 +85,7 @@ NinjaVM vm_init(NinjaVM vm, char file[]) {
     vm = vm_init_sda(vm);
     vm = vm_init_stack(vm);
     vm = vm_load_program(vm);
-
-    vm.debug = false;
-    vm.breakpoint = NULL;
+    vm = vm_init_debug(vm, debug);
 
     fclose(vm.file);
 
@@ -96,27 +105,33 @@ void free_sda() {
 }
 
 NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
-    for(int i = 1; i < argc; i++) {
-        if(argv[i][0] == '-') {
-            if (strcmp(argv[i], "--help") == 0) {
-                printf("usage: ./njvm_start [option] [option] ...\n");
-                printf("  --debug          start virtual machine in debug mode\n");
-                printf("  --version        show version and exit\n");
-                printf("  --help           show this help and exit\n");
-                exit(0);
-            } else if (strcmp(argv[i], "--debug") == 0) {
-                vm.debug = true;
-                i++;
-            } else if (strcmp(argv[i], "--version") == 0) {
-                printf("Ninja Virtual Machine version 5 (compiled Sep 23 2015, 10:36:52)\n");
-                exit(0);
-            } else {
-                printf("unknown command line argument '%s', try './njvm_start --help'\n", argv[i]);
-                exit(0);
+    bool debug = false;
+    if(argc != 1) {
+        for(int i = 1; i < argc; i++) {
+            if(argv[i][0] == '-') {
+                if (strcmp(argv[i], "--help") == 0) {
+                    printf("usage: ./njvm_start [option] [option] ...\n");
+                    printf("  --debug          start virtual machine in debug mode\n");
+                    printf("  --version        show version and exit\n");
+                    printf("  --help           show this help and exit\n");
+                    exit(0);
+                } else if (strcmp(argv[i], "--debug") == 0) {
+                    debug = true;
+                    i++;
+                } else if (strcmp(argv[i], "--version") == 0) {
+                    printf("Ninja Virtual Machine version 5 (compiled Sep 23 2015, 10:36:52)\n");
+                    exit(0);
+                } else {
+                    printf("unknown command line argument '%s', try './njvm_start --help'\n", argv[i]);
+                    exit(0);
+                }
             }
         }
+    } else {
+        printf("Error: no code file specified");
+        exit(0);
     }
-    vm = vm_init(vm, argv[argc - 1]);
+    vm = vm_init(vm, argv[argc - 1], debug);
     return vm;
 }
 
@@ -129,4 +144,9 @@ int njvm_start(int argc, char *argv[]) {
 
     printf("Ninja Virtual Machine stopped\n");
     return 0;
+}
+
+int main(int argc, char *argv[]) {
+    obj_compound_new(2);
+    return njvm_start(argc, argv);
 }

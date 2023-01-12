@@ -43,14 +43,21 @@ typedef struct {
 } StaticDataArea;
 
 typedef struct {
+    bool debug;
+    bool breakpoint_set;
+    unsigned int breakpoint;
+} Debugger;
+
+typedef struct {
     ProgramMemory program_memory;
     Stack stack;
     StaticDataArea sda;
     ObjRef rvr;
-    bool debug;
-    int breakpoint;
+    Debugger debugger;
     FILE *file;
 } NinjaVM;
+
+
 
 extern NinjaVM njvm;
 

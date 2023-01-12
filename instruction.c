@@ -400,12 +400,12 @@ void instructions_run() {
         instruction = njvm.program_memory.instructions[njvm.program_memory.program_counter];
         njvm.program_memory.program_counter++;
 
-        if(njvm.breakpoint != NULL & njvm.breakpoint == (njvm.program_memory.program_counter - 1)) {
-            njvm.debug = true;
-            njvm.breakpoint = NULL;
+        if(njvm.debugger.breakpoint_set == true && njvm.debugger.breakpoint == (njvm.program_memory.program_counter - 1)) {
+            njvm.debugger.debug = true;
+            njvm.debugger.breakpoint_set = false;
         }
 
-        if (njvm.debug) {
+        if (njvm.debugger.debug) {
             info:
             instruction_print(instruction);
             printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
@@ -434,13 +434,14 @@ void instructions_run() {
                     goto info;
                 case 'b':
                     printf("Breakpoint: (program_count)\n");
-                    scanf("%d", &njvm.breakpoint);
-                    njvm.debug = false;
+                    scanf("%u", &njvm.debugger.breakpoint);
+                    njvm.debugger.breakpoint_set = true;
+                    njvm.debugger.debug = false;
                     break;
                 case 's':
                     break;
                 case 'r':
-                    njvm.debug = false;
+                    njvm.debugger.debug = false;
                     break;
                 case 'q':
                     goto end_while;

@@ -184,6 +184,120 @@ void instruction_DUP() {
     stack_push(s);
 }
 
+void instruction_NEW(unsigned int immediate) {
+    ObjRef cmpObj = newCompositeObject(immediate);
+    for(int i = 0; i < immediate; i++) {
+        GET_REFS_PTR(cmpObj)[i] = malloc(8);
+    }
+    stack_push(stackslot_new_obj(cmpObj));
+}
+
+void instruction_GETF(unsigned int immediate) {
+    ObjRef cmpObj = stack_pop().u.objRef;
+    if(IS_PRIMITIVE(cmpObj)) {
+        fatalError("not a compound object");
+    }
+    if(GET_ELEMENT_COUNT(cmpObj) <= immediate || immediate < 0) {
+        fatalError("compound object out of bounds");
+    }
+    stack_push(stackslot_new_obj(GET_REFS_PTR(cmpObj)[immediate]));
+}
+
+void instruction_PUTF(unsigned int immediate) {
+    ObjRef value = stack_pop().u.objRef;
+    ObjRef cmpObj = stack_pop().u.objRef;
+    if(IS_PRIMITIVE(cmpObj)) {
+        fatalError("not a compound object");
+    }
+    if(GET_ELEMENT_COUNT(cmpObj) < immediate) {
+        fatalError("compound object index out of bounds");
+    }
+    GET_REFS_PTR(cmpObj)[immediate] = value;
+}
+
+void instruction_NEWA() {
+    ObjRef array;
+    bip.op1 = stack_pop().u.objRef;
+    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+        fatalError("object is not primitive");
+    }
+    array = newCompositeObject(bigToInt());
+    stack_push(stackslot_new_obj(array));
+}
+
+void instruction_GETFA() {
+    bip.op1 = stack_pop().u.objRef;
+    ObjRef array = stack_pop().u.objRef;
+    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+        fatalError("object is not primitive");
+    }
+    int index = bigToInt();
+
+    if(index >= GET_ELEMENT_COUNT(array) || index < 0) {
+        fatalError("array index out of bounds");
+    }
+
+    stack_push(stackslot_new_obj(GET_REFS_PTR(array)[index]));
+}
+
+void instruction_PUTFA() {
+    ObjRef value = stack_pop().u.objRef;
+    bip.op1 = stack_pop().u.objRef;
+    ObjRef array = stack_pop().u.objRef;
+    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+        fatalError("object is not primitive");
+    }
+    int index = bigToInt();
+
+    if(IS_PRIMITIVE(array)) {
+        fatalError("array is not compound object");
+    }
+    if(index >= GET_ELEMENT_COUNT(array) || index < 0) {
+        fatalError("array index out of bounds");
+    }
+
+    GET_REFS_PTR(array)[index] = value;
+}
+
+void instruction_GETSZ() {
+    bip.op1 = stack_pop().u.objRef;
+    if(IS_PRIMITIVE((ObjRef) bip.op1)) {
+        bigFromInt(-1);
+        stack_push(stackslot_new_obj(bip.res));
+    } else {
+        bigFromInt(GET_ELEMENT_COUNT((ObjRef) bip.op1));
+        stack_push(stackslot_new_obj(bip.res));
+    }
+}
+
+void instruction_PUSHN() {
+    stack_push(stackslot_new_obj(NULL));
+}
+
+void instruction_REFEQ() {
+    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop().u.objRef;
+    if(bip.op1 == bip.op2) {
+        bigFromInt(1);
+        stack_push(stackslot_new_obj(bip.res));
+    } else {
+        bigFromInt(0);
+        stack_push(stackslot_new_obj(bip.res));
+    }
+}
+
+void instruction_REFNE() {
+    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop().u.objRef;
+    if(bip.op1 != bip.op2) {
+        bigFromInt(1);
+        stack_push(stackslot_new_obj(bip.res));
+    } else {
+        bigFromInt(0);
+        stack_push(stackslot_new_obj(bip.res));
+    }
+}
+
 void instruction_execute(unsigned int instruction) {
     unsigned int opcode = instruction >> 24;
     unsigned int immediate = IMMEDIATE(instruction);
@@ -284,6 +398,36 @@ void instruction_execute(unsigned int instruction) {
         case DUP:
             instruction_DUP();
             break;
+        case NEW:
+            instruction_NEW(immediate);
+            break;
+        case GETF:
+            instruction_GETF(immediate);
+            break;
+        case PUTF:
+            instruction_PUTF(immediate);
+            break;
+        case NEWA:
+            instruction_NEWA();
+            break;
+        case GETFA:
+            instruction_GETFA();
+            break;
+        case PUTFA:
+            instruction_PUTFA();
+            break;
+        case GETSZ:
+            instruction_GETSZ();
+            break;
+        case PUSHN:
+            instruction_PUSHN();
+            break;
+        case REFEQ:
+            instruction_REFEQ();
+            break;
+        case REFNE:
+            instruction_REFNE();
+            break;
         default:
             printf("unknown opcode\n");
     }
@@ -338,10 +482,10 @@ void instruction_print(unsigned int instruction) {
             printf("%03d:\trsf\n", njvm.program_memory.program_counter - 1);
             break;
         case PUSHL:
-            printf("%03d:\tpushl\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
+            printf("%03d:\tpushl\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
             break;
         case POPL:
-            printf("%03d:\tpopl\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
+            printf("%03d:\tpopl\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
             break;
         case EQ:
             printf("%03d:\teq\n", njvm.program_memory.program_counter - 1);
@@ -388,6 +532,36 @@ void instruction_print(unsigned int instruction) {
         case DUP:
             printf("%03d:\tdup\n", njvm.program_memory.program_counter - 1);
             break;
+        case NEW:
+            printf("%03d:\tnew\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            break;
+        case GETF:
+            printf("%03d:\tgetf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            break;
+        case PUTF:
+            printf("%03d:\tputf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            break;
+        case NEWA:
+            printf("%03d:\tnewa\n", njvm.program_memory.program_counter - 1);
+            break;
+        case GETFA:
+            printf("%03d:\tgetfa\n", njvm.program_memory.program_counter - 1);
+            break;
+        case PUTFA:
+            printf("%03d:\tputfa\n", njvm.program_memory.program_counter - 1);
+            break;
+        case GETSZ:
+            printf("%03d:\tgetsz\n", njvm.program_memory.program_counter - 1);
+            break;
+        case PUSHN:
+            printf("%03d:\tpushn\n", njvm.program_memory.program_counter - 1);
+            break;
+        case REFEQ:
+            printf("%03d:\trefeq\n", njvm.program_memory.program_counter - 1);
+            break;
+        case REFNE:
+            printf("%03d:\trefne\n", njvm.program_memory.program_counter - 1);
+            break;
         default:
             printf("unknown opcode\n");
     }
@@ -421,11 +595,22 @@ void instructions_run() {
                         printf("Object reference:\n");
                         int *address;
                         scanf("%p", (void**)&address);
-                        bip.op1 = (ObjRef) address;
 
-                        printf("value = ");
-                        bigPrint(stdout);
-                        printf("\n");
+                        if((ObjRef)address == NULL) {
+                            if (!IS_PRIMITIVE((ObjRef) address)) {
+                                printf("size = %d\n", GET_ELEMENT_COUNT((ObjRef) address));
+                                for (int i = 0; i < GET_ELEMENT_COUNT((ObjRef) address); i++) {
+                                    printf("address: %p\n", (void *) GET_REFS_PTR((ObjRef) address)[i]);
+                                }
+                            } else {
+                                bip.op1 = (ObjRef) address;
+                                printf("value = ");
+                                bigPrint(stdout);
+                                printf("\n");
+                            }
+                        } else {
+                            printf("value = NULL\n");
+                        }
                     }
                     goto info;
                 case 'l':

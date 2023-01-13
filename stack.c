@@ -28,7 +28,7 @@ StackSlot stackslot_new_obj(ObjRef object) {
 
 StackSlot stackslot_new(unsigned int number) {
     StackSlot slot;
-    slot.isObjRef = true;
+    slot.isObjRef = false;
     slot.u.number = number;
     return slot;
 }
@@ -47,7 +47,7 @@ void stack_print() {
             if (njvm.stack.stack[i].isObjRef == true) {
                 printf("\t\t\t\t%04d:\t%p (objref)\n", i, (void *) njvm.stack.stack[i].u.objRef);
             } else {
-                printf("\t\t\t\t%04d:\t%d\n (number)", i, njvm.stack.stack[i].u.number);
+                printf("\t\t\t\t%04d:\t%d (number)\n", i, njvm.stack.stack[i].u.number);
             }
         }
     }

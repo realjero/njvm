@@ -147,6 +147,5 @@ int njvm_start(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-    obj_compound_new(2);
     return njvm_start(argc, argv);
 }

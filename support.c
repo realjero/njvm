@@ -1,5 +1,5 @@
 #include "support.h"
-#include "njvm.h"
+#include "makro.h"
 
 void fatalError(char *msg) {
     printf("Fatal error: %s\n", msg);
@@ -21,4 +21,10 @@ void *newPrimObject(int dataSize) {
 void *getPrimObjectDataPointer(void *obj) {
     ObjRef oo = ((ObjRef) (obj));
     return oo->data;
+}
+
+ObjRef newCompositeObject(unsigned int size) {
+    ObjRef cmpObj = malloc(sizeof(unsigned int) + (size * sizeof(ObjRef)));
+    cmpObj->size = size | MSB;
+    return cmpObj;
 }

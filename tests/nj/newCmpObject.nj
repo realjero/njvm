@@ -1,0 +1,15 @@
+type Point = record {
+    Integer x;
+    Integer y;
+};
+
+void main() {
+    local Point p;
+    p = new(Point);
+    p.x = 1;
+    p.y = 2;
+    writeInteger(p.x);
+    writeString("\n");
+    writeInteger(p.y);
+    writeString("\n");
+}

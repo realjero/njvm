@@ -109,54 +109,121 @@ _writeString_L2:
 	ret
 
 //
-// void main()
+// void writeArray(Integer[][])
 //
-_main:
-	asf	5
-	pushc	0
-	popl	1
-	pushc	1
-	popl	2
-	call	_readInteger
-	pushr
+_writeArray:
+	asf	4
+	pushl	-3
+	getsz
 	popl	0
 	pushc	0
-	popl	4
+	popl	1
 	jmp	__2
 __1:
-	pushl	4
-	pushc	1
-	add
-	popl	4
-	pushl	4
-	pushc	1
-	le
-	brf	__4
-	pushl	4
+	pushl	-3
+	pushl	1
+	getfa
+	getsz
+	popl	2
+	pushc	0
 	popl	3
 	jmp	__5
 __4:
+	pushl	-3
 	pushl	1
-	pushl	2
-	add
-	popl	3
-	pushl	2
-	popl	1
+	getfa
 	pushl	3
-	popl	2
-__5:
-	pushl	3
+	getfa
 	call	_writeInteger
 	drop	1
+	pushc	32
+	call	_writeCharacter
+	drop	1
+	pushl	3
+	pushc	1
+	add
+	popl	3
+__5:
+	pushl	3
+	pushl	2
+	lt
+	brt	__4
+__6:
 	pushc	10
 	call	_writeCharacter
 	drop	1
+	pushl	1
+	pushc	1
+	add
+	popl	1
 __2:
-	pushl	4
+	pushl	1
 	pushl	0
 	lt
 	brt	__1
 __3:
 __0:
+	rsf
+	ret
+
+//
+// void main()
+//
+_main:
+	asf	3
+	pushc	3
+	newa
+	popl	0
+	pushc	0
+	popl	1
+	jmp	__9
+__8:
+	pushl	0
+	pushl	1
+	pushc	4
+	newa
+	putfa
+	pushc	0
+	popl	2
+	jmp	__12
+__11:
+	pushl	0
+	pushl	1
+	getfa
+	pushl	2
+	pushc	10
+	pushl	1
+	pushc	1
+	add
+	mul
+	pushl	2
+	pushc	1
+	add
+	add
+	putfa
+	pushl	2
+	pushc	1
+	add
+	popl	2
+__12:
+	pushl	2
+	pushc	4
+	lt
+	brt	__11
+__13:
+	pushl	1
+	pushc	1
+	add
+	popl	1
+__9:
+	pushl	1
+	pushc	3
+	lt
+	brt	__8
+__10:
+	pushl	0
+	call	_writeArray
+	drop	1
+__7:
 	rsf
 	ret

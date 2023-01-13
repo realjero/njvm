@@ -109,54 +109,109 @@ _writeString_L2:
 	ret
 
 //
-// void main()
+// void printList(record { Integer value; List next; })
 //
-_main:
-	asf	5
-	pushc	0
-	popl	1
-	pushc	1
-	popl	2
-	call	_readInteger
-	pushr
-	popl	0
-	pushc	0
-	popl	4
+_printList:
+	asf	0
 	jmp	__2
 __1:
-	pushl	4
-	pushc	1
-	add
-	popl	4
-	pushl	4
-	pushc	1
-	le
-	brf	__4
-	pushl	4
-	popl	3
-	jmp	__5
-__4:
-	pushl	1
-	pushl	2
-	add
-	popl	3
-	pushl	2
-	popl	1
-	pushl	3
-	popl	2
-__5:
-	pushl	3
+	pushl	-3
+	getf	0
 	call	_writeInteger
 	drop	1
+	pushc	32
+	call	_writeCharacter
+	drop	1
+	pushl	-3
+	getf	1
+	popl	-3
+__2:
+	pushl	-3
+	pushn
+	refne
+	brt	__1
+__3:
 	pushc	10
 	call	_writeCharacter
 	drop	1
-__2:
-	pushl	4
-	pushl	0
-	lt
-	brt	__1
-__3:
 __0:
+	rsf
+	ret
+
+//
+// record { Integer value; List next; } reverse(record { Integer value; List next; })
+//
+_reverse:
+	asf	2
+	pushn
+	popl	0
+	jmp	__6
+__5:
+	pushl	-3
+	popl	1
+	pushl	-3
+	getf	1
+	popl	-3
+	pushl	1
+	pushl	0
+	putf	1
+	pushl	1
+	popl	0
+__6:
+	pushl	-3
+	pushn
+	refne
+	brt	__5
+__7:
+	pushl	0
+	popr
+	jmp	__4
+__4:
+	rsf
+	ret
+
+//
+// void main()
+//
+_main:
+	asf	3
+	pushc	9
+	popl	0
+	pushn
+	popl	1
+	jmp	__10
+__9:
+	new	2
+	popl	2
+	pushl	2
+	pushl	0
+	putf	0
+	pushl	2
+	pushl	1
+	putf	1
+	pushl	2
+	popl	1
+	pushl	0
+	pushc	1
+	sub
+	popl	0
+__10:
+	pushl	0
+	pushc	0
+	ge
+	brt	__9
+__11:
+	pushl	1
+	call	_printList
+	drop	1
+	pushl	1
+	call	_reverse
+	drop	1
+	pushr
+	popl	1
+	pushl	1
+	call	_printList
+	drop	1
+__8:
 	rsf
 	ret

@@ -1,7 +1,7 @@
 cd ..
 cd ..
 gcc -g -Wall -std=c99 -pedantic \
--I./include -L./lib njvm.c instruction.c stack.c support.c -lbigint -o vm
+-I./include -L./lib njvm.c heap.c instruction.c stack.c support.c -lbigint -o vm
 for t in tests/bin/*.bin; do
   echo "TESTING: $t";
   echo "NJVM:";

@@ -9,7 +9,6 @@
 
 #define VERSION 8
 #define BINARY_FORMAT "NJBF"
-#define STACK_MAX_ITEMS 10000
 
 typedef struct {
     unsigned int size;

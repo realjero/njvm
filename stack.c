@@ -2,7 +2,7 @@
 #include "support.h"
 
 void stack_push(StackSlot slot) {
-    if(njvm.stack.stack_pointer == STACK_MAX_ITEMS) {
+    if(njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
 

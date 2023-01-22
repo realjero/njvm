@@ -55,8 +55,7 @@ NinjaVM vm_init_sda(NinjaVM vm) {
 NinjaVM vm_init_stack(NinjaVM vm) {
     vm.stack.stack_pointer = 0;
     vm.stack.frame_pointer = 0;
-    vm.stack.size = STACK_MAX_ITEMS;
-    vm.stack.stack = malloc(vm.stack.size * sizeof(StackSlot));
+    vm.stack.stack = malloc(vm.stack.size);
     if (vm.stack.stack == NULL)
         fatalError("vm_init_stack() malloc");
     return vm;
@@ -106,6 +105,9 @@ void free_sda() {
 
 NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
     bool debug = false;
+    // DEFAULT PARAMS
+    vm.stack.size = 64 * 1024;
+
     if (argc != 1) {
         for (int i = 1; i < argc; i++) {
             if (argv[i][0] == '-') {
@@ -122,7 +124,7 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
                     printf("Ninja Virtual Machine version 5 (compiled Sep 23 2015, 10:36:52)\n");
                     exit(0);
                 } else if (strcmp(argv[i], "--stack") == 0) {
-                    njvm.stack.size = atoi(argv[++i]);
+                    njvm.stack.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--heap") == 0) {
                     i++;
                 } else if (strcmp(argv[i], "--gcpurge") == 0) {

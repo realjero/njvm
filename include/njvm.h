@@ -30,6 +30,15 @@ typedef struct {
 } ProgramMemory;
 
 typedef struct {
+    unsigned int size;
+    bool purge;
+    char *active;
+    char *passive;
+    char *next;
+    char *end;
+} Heap;
+
+typedef struct {
     unsigned int stack_pointer;
     unsigned int frame_pointer;
     unsigned int size;
@@ -49,6 +58,7 @@ typedef struct {
 
 typedef struct {
     ProgramMemory program_memory;
+    Heap heap;
     Stack stack;
     StaticDataArea sda;
     ObjRef rvr;
@@ -61,6 +71,8 @@ typedef struct {
 extern NinjaVM njvm;
 
 int njvm_start(int argc, char *argv[]);
+
+void free_heap();
 
 void free_stack();
 

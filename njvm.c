@@ -44,6 +44,14 @@ NinjaVM vm_init_program_memory(NinjaVM vm) {
     return vm;
 }
 
+NinjaVM vm_init_heap(NinjaVM vm) {
+    vm.heap.active = malloc(vm.heap.size / 2);
+    vm.heap.passive = malloc(vm.heap.size / 2);
+    vm.heap.next = vm.heap.active;
+    vm.heap.end = vm.heap.passive;
+    return vm;
+}
+
 NinjaVM vm_init_sda(NinjaVM vm) {
     fread(&vm.sda.size, sizeof(unsigned int), 1, vm.file);
     vm.sda.sda = malloc(vm.sda.size * sizeof(ObjRef));
@@ -81,6 +89,7 @@ NinjaVM vm_init(NinjaVM vm, char file[], bool debug) {
     vm = vm_check_binary_format(vm);
     vm = vm_check_version(vm);
     vm = vm_init_program_memory(vm);
+    vm = vm_init_heap(vm);
     vm = vm_init_sda(vm);
     vm = vm_init_stack(vm);
     vm = vm_load_program(vm);
@@ -89,6 +98,13 @@ NinjaVM vm_init(NinjaVM vm, char file[], bool debug) {
     fclose(vm.file);
 
     return vm;
+}
+
+void free_heap() {
+    free(njvm.heap.active);
+    free(njvm.heap.passive);
+    free(njvm.heap.next);
+    free(njvm.heap.end);
 }
 
 void free_stack() {
@@ -107,6 +123,8 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
     bool debug = false;
     // DEFAULT PARAMS
     vm.stack.size = 64 * 1024;
+    vm.heap.size = 8192 * 1024;
+    vm.heap.purge = false;
 
     if (argc != 1) {
         for (int i = 1; i < argc; i++) {
@@ -126,8 +144,9 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
                 } else if (strcmp(argv[i], "--stack") == 0) {
                     njvm.stack.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--heap") == 0) {
-                    i++;
+                    vm.heap.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--gcpurge") == 0) {
+                    vm.heap.purge = true;
                     i++;
                 }else {
                     printf("unknown command line argument '%s', try './njvm_start --help'\n", argv[i]);

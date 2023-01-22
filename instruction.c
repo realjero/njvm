@@ -4,6 +4,7 @@
 #include <bigint.h>
 
 void instruction_HALT() {
+    free_heap();
     free_program_memory();
     free_sda();
     free_stack();

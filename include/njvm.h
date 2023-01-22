@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define VERSION 7
+#define VERSION 8
 #define BINARY_FORMAT "NJBF"
 #define STACK_MAX_ITEMS 10000
 

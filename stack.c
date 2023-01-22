@@ -1,9 +1,9 @@
 #include "stack.h"
+#include "support.h"
 
 void stack_push(StackSlot slot) {
     if(njvm.stack.stack_pointer == STACK_MAX_ITEMS) {
-        printf("Error: stack overflow\n");
-        exit(0);
+        fatalError("stack overflow");
     }
 
     njvm.stack.stack[njvm.stack.stack_pointer] = slot;
@@ -12,8 +12,7 @@ void stack_push(StackSlot slot) {
 
 StackSlot stack_pop() {
     if(njvm.stack.stack_pointer == 0) {
-        printf("Error: stack underflow\n");
-        exit(0);
+        fatalError("stack underflow");
     }
     njvm.stack.stack_pointer--;
     return njvm.stack.stack[njvm.stack.stack_pointer];

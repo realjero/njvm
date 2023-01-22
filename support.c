@@ -24,7 +24,22 @@ void *getPrimObjectDataPointer(void *obj) {
 }
 
 ObjRef newCompositeObject(unsigned int size) {
-    ObjRef cmpObj = malloc(sizeof(unsigned int) + (size * sizeof(ObjRef)));
+    ObjRef cmpObj = malloc(sizeof(ObjRef) + (size * sizeof(void *)));
     cmpObj->size = size | MSB;
     return cmpObj;
+}
+
+ObjRef stack_pop_objref() {
+    if(njvm.stack.stack_pointer == 0) {
+        fatalError("stack underflow");
+    }
+    njvm.stack.stack_pointer--;
+    StackSlot stackSlot = njvm.stack.stack[njvm.stack.stack_pointer];
+
+    if(!stackSlot.isObjRef) {
+        fatalError("popObjRef detected number on top of stack");
+    }
+
+    ObjRef object = stackSlot.u.objRef;
+    return object;
 }

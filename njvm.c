@@ -3,7 +3,7 @@
 #include "support.h"
 
 /*
- * gcc -g -Wall -std=c99 -pedantic -I./include -L./lib njvm.c instruction.c stack.c support.c -lbigint -o vm
+ * gcc -g -Wall -std=c99 -pedantic -I./include -L./lib njvm.c heap.c instruction.c stack.c support.c -lbigint -o vm
  */
 
 NinjaVM njvm;
@@ -103,8 +103,6 @@ NinjaVM vm_init(NinjaVM vm, char file[], bool debug) {
 void free_heap() {
     free(njvm.heap.active);
     free(njvm.heap.passive);
-    free(njvm.heap.next);
-    free(njvm.heap.end);
 }
 
 void free_stack() {

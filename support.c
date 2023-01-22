@@ -1,5 +1,6 @@
 #include "support.h"
 #include "makro.h"
+#include "heap.h"
 
 void fatalError(char *msg) {
     printf("Fatal error: %s\n", msg);
@@ -9,8 +10,9 @@ void fatalError(char *msg) {
 void *newPrimObject(int dataSize) {
     ObjRef bigObjRef;
 
-    bigObjRef = malloc(sizeof(unsigned int) +
+    bigObjRef = alloc(sizeof(unsigned int) +
                        dataSize * sizeof(unsigned char));
+    // printf("alloc= %p\n", bigObjRef);
     if (bigObjRef == NULL) {
         fatalError("newPrimObject() got no memory");
     }
@@ -24,7 +26,7 @@ void *getPrimObjectDataPointer(void *obj) {
 }
 
 ObjRef newCompositeObject(unsigned int size) {
-    ObjRef cmpObj = malloc(sizeof(ObjRef) + (size * sizeof(void *)));
+    ObjRef cmpObj = alloc(sizeof(unsigned int) + (size * sizeof(void *)));
     cmpObj->size = size | MSB;
     return cmpObj;
 }

@@ -9,42 +9,42 @@ void instruction_HALT() {
     free_stack();
 }
 
-void instruction_PUSHC(unsigned int immediate) {
+void instruction_PUSHC(int immediate) {
     bigFromInt(SIGN_EXTEND(immediate));
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_ADD() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigAdd();
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_SUB() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigSub();
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_MUL() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigMul();
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_DIV() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigDiv();
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_MOD() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigDiv();
     stack_push(stackslot_new_obj(bip.rem));
 }
@@ -55,33 +55,46 @@ void instruction_RDINT() {
 }
 
 void instruction_WRINT() {
-    bip.op1 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
     bigPrint(stdout);
 }
 
 void instruction_RDCHR() {
     char input;
-    scanf("%c", &input);
+    if(!scanf("%c", &input)) {
+        fatalError("failed to read character");
+    }
     bigFromInt((int) input);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_WRCHR() {
-    bip.op1 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
     printf("%c", (char) bigToInt());
 }
 
-void instruction_PUSHG(unsigned int immediate) {
+void instruction_PUSHG(int immediate) {
+    if(immediate < 0 || njvm.sda.size <= immediate) {
+        fatalError("static data area index out of bound");
+    }
     stack_push(stackslot_new_obj(
             njvm.sda.sda[immediate]));
 }
 
-void instruction_POPG(unsigned int immediate) {
-    ObjRef ob = stack_pop().u.objRef;
-    njvm.sda.sda[immediate] = ob;
+void instruction_POPG(int immediate) {
+    if(immediate < 0 || njvm.sda.size <= immediate) {
+        fatalError("static data area index out of bound");
+    }
+    njvm.sda.sda[immediate] = stack_pop_objref();
 }
 
-void instruction_ASF(unsigned int immediate) {
+void instruction_ASF(int immediate) {
+    if((njvm.stack.stack_pointer + immediate) >= njvm.stack.size) {
+        fatalError("stack overflow");
+    }
+    if(immediate < 0) {
+        fatalError("stack frame cannot be negativ");
+    }
     stack_push(stackslot_new(njvm.stack.frame_pointer));
     njvm.stack.frame_pointer = njvm.stack.stack_pointer;
     njvm.stack.stack_pointer += immediate;
@@ -92,71 +105,71 @@ void instruction_RSF() {
     njvm.stack.frame_pointer = stack_pop().u.number;
 }
 
-void instruction_PUSHL(unsigned int immediate) {
+void instruction_PUSHL(int immediate) {
     stack_push(njvm.stack.stack[njvm.stack.frame_pointer + SIGN_EXTEND(immediate)]);
 }
 
-void instruction_POPL(unsigned int immediate) {
+void instruction_POPL(int immediate) {
     njvm.stack.stack[njvm.stack.frame_pointer + SIGN_EXTEND(immediate)] = stack_pop();
 }
 
 void instruction_EQ() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() == 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_NE() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() != 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_LT() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() < 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_LE() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() <= 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_GT() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() > 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
 void instruction_GE() {
-    bip.op2 = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op2 = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
     bigFromInt(bigCmp() >= 0 ? 1 : 0);
     stack_push(stackslot_new_obj(bip.res));
 }
 
-void instruction_JMP(unsigned int immediate) {
+void instruction_JMP(int immediate) {
     njvm.program_memory.program_counter = immediate;
 }
 
-void instruction_BRF(unsigned int immediate) {
-    bip.op1 = stack_pop().u.objRef;
+void instruction_BRF(int immediate) {
+    bip.op1 = stack_pop_objref();
     if (!bigToInt()) njvm.program_memory.program_counter = immediate;
 }
 
-void instruction_BRT(unsigned int immediate) {
-    bip.op1 = stack_pop().u.objRef;
+void instruction_BRT(int immediate) {
+    bip.op1 = stack_pop_objref();
     if (bigToInt() == 1) njvm.program_memory.program_counter = immediate;
 }
 
-void instruction_CALL(unsigned int immediate) {
+void instruction_CALL(int immediate) {
     stack_push(stackslot_new(njvm.program_memory.program_counter));
     njvm.program_memory.program_counter = immediate;
 }
@@ -165,17 +178,20 @@ void instruction_RET() {
     njvm.program_memory.program_counter = stack_pop().u.number;
 }
 
-void instruction_DROP(unsigned int immediate) {
+void instruction_DROP(int immediate) {
     for (int i = 0; i < immediate; i++)
         stack_pop();
 }
 
 void instruction_PUSHR() {
+    if(njvm.rvr == NULL) {
+        fatalError("rvr is null");
+    }
     stack_push(stackslot_new_obj(njvm.rvr));
 }
 
 void instruction_POPR() {
-    njvm.rvr = stack_pop().u.objRef;
+    njvm.rvr = stack_pop_objref();
 }
 
 void instruction_DUP() {
@@ -184,7 +200,7 @@ void instruction_DUP() {
     stack_push(s);
 }
 
-void instruction_NEW(unsigned int immediate) {
+void instruction_NEW(int immediate) {
     ObjRef cmpObj = newCompositeObject(immediate);
     for(int i = 0; i < immediate; i++) {
         GET_REFS_PTR(cmpObj)[i] = malloc(8);
@@ -192,20 +208,20 @@ void instruction_NEW(unsigned int immediate) {
     stack_push(stackslot_new_obj(cmpObj));
 }
 
-void instruction_GETF(unsigned int immediate) {
-    ObjRef cmpObj = stack_pop().u.objRef;
+void instruction_GETF(int immediate) {
+    ObjRef cmpObj = stack_pop_objref();
     if(IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
-    if(GET_ELEMENT_COUNT(cmpObj) <= immediate || immediate < 0) {
+    if(GET_ELEMENT_COUNT(cmpObj) <= immediate) {
         fatalError("compound object out of bounds");
     }
     stack_push(stackslot_new_obj(GET_REFS_PTR(cmpObj)[immediate]));
 }
 
-void instruction_PUTF(unsigned int immediate) {
-    ObjRef value = stack_pop().u.objRef;
-    ObjRef cmpObj = stack_pop().u.objRef;
+void instruction_PUTF(int immediate) {
+    ObjRef value = stack_pop_objref();
+    ObjRef cmpObj = stack_pop_objref();
     if(IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
@@ -217,7 +233,7 @@ void instruction_PUTF(unsigned int immediate) {
 
 void instruction_NEWA() {
     ObjRef array;
-    bip.op1 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
@@ -226,8 +242,8 @@ void instruction_NEWA() {
 }
 
 void instruction_GETFA() {
-    bip.op1 = stack_pop().u.objRef;
-    ObjRef array = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
+    ObjRef array = stack_pop_objref();
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
@@ -241,9 +257,9 @@ void instruction_GETFA() {
 }
 
 void instruction_PUTFA() {
-    ObjRef value = stack_pop().u.objRef;
-    bip.op1 = stack_pop().u.objRef;
-    ObjRef array = stack_pop().u.objRef;
+    ObjRef value = stack_pop_objref();
+    bip.op1 = stack_pop_objref();
+    ObjRef array = stack_pop_objref();
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
@@ -260,7 +276,7 @@ void instruction_PUTFA() {
 }
 
 void instruction_GETSZ() {
-    bip.op1 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
     if(IS_PRIMITIVE((ObjRef) bip.op1)) {
         bigFromInt(-1);
         stack_push(stackslot_new_obj(bip.res));
@@ -275,8 +291,8 @@ void instruction_PUSHN() {
 }
 
 void instruction_REFEQ() {
-    bip.op1 = stack_pop().u.objRef;
-    bip.op2 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
+    bip.op2 = stack_pop_objref();
     if(bip.op1 == bip.op2) {
         bigFromInt(1);
         stack_push(stackslot_new_obj(bip.res));
@@ -287,8 +303,8 @@ void instruction_REFEQ() {
 }
 
 void instruction_REFNE() {
-    bip.op1 = stack_pop().u.objRef;
-    bip.op2 = stack_pop().u.objRef;
+    bip.op1 = stack_pop_objref();
+    bip.op2 = stack_pop_objref();
     if(bip.op1 != bip.op2) {
         bigFromInt(1);
         stack_push(stackslot_new_obj(bip.res));
@@ -298,9 +314,9 @@ void instruction_REFNE() {
     }
 }
 
-void instruction_execute(unsigned int instruction) {
+void instruction_execute(int instruction) {
     unsigned int opcode = instruction >> 24;
-    unsigned int immediate = IMMEDIATE(instruction);
+    int immediate = IMMEDIATE(instruction);
     switch (opcode) {
         case HALT:
             instruction_HALT();
@@ -433,7 +449,7 @@ void instruction_execute(unsigned int instruction) {
     }
 }
 
-void instruction_print(unsigned int instruction) {
+void instruction_print(int instruction) {
     unsigned int opcode = instruction >> 24;
     switch (opcode) {
         case HALT:
@@ -482,7 +498,7 @@ void instruction_print(unsigned int instruction) {
             printf("%03d:\trsf\n", njvm.program_memory.program_counter - 1);
             break;
         case PUSHL:
-            printf("%03d:\tpushl\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tpushl\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case POPL:
             printf("%03d:\tpopl\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
@@ -568,7 +584,7 @@ void instruction_print(unsigned int instruction) {
 }
 
 void instructions_run() {
-    unsigned int instruction;
+    int instruction;
     char e[20];
     do {
         instruction = njvm.program_memory.instructions[njvm.program_memory.program_counter];
@@ -640,7 +656,7 @@ void instructions_run() {
 }
 
 void instructions_print() {
-    unsigned int instruction;
+    int instruction;
     do {
         instruction = njvm.program_memory.instructions[njvm.program_memory.program_counter];
         instruction_print(instruction);

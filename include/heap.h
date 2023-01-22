@@ -4,4 +4,6 @@
 
 #include "njvm.h"
 
+void *alloc (unsigned size);
+
 #endif //HEAP_H

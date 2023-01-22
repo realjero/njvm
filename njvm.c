@@ -12,9 +12,9 @@ NinjaVM vm_check_binary_format(NinjaVM vm) {
     char binary_format[4];
     fread(binary_format, sizeof(char), 4, vm.file);
 
-    if(strcmp(binary_format, BINARY_FORMAT) != 0) {
+    if (strcmp(binary_format, BINARY_FORMAT) != 0) {
         printf("BINARY_FORMAT error");
-        exit(0);
+        exit(1);
     }
     return vm;
 }
@@ -23,9 +23,9 @@ NinjaVM vm_check_version(NinjaVM vm) {
     unsigned int version;
     fread(&version, sizeof(unsigned int), 1, vm.file);
 
-    if(version != VERSION) {
+    if (version != VERSION) {
         printf("VERSION error\n");
-        exit(0);
+        exit(1);
     }
     return vm;
 }
@@ -33,11 +33,11 @@ NinjaVM vm_check_version(NinjaVM vm) {
 NinjaVM vm_init_program_memory(NinjaVM vm) {
     fread(&vm.program_memory.size, sizeof(unsigned int), 1, vm.file);
 
-    if(vm.program_memory.size == 0)
+    if (vm.program_memory.size == 0)
         fatalError("vm_init_program_size() size");
 
     vm.program_memory.instructions = malloc(vm.program_memory.size * sizeof(unsigned int));
-    if(vm.program_memory.instructions == NULL)
+    if (vm.program_memory.instructions == NULL)
         fatalError("vm_init_program_size() malloc");
 
     vm.program_memory.program_counter = 0;
@@ -47,7 +47,7 @@ NinjaVM vm_init_program_memory(NinjaVM vm) {
 NinjaVM vm_init_sda(NinjaVM vm) {
     fread(&vm.sda.size, sizeof(unsigned int), 1, vm.file);
     vm.sda.sda = malloc(vm.sda.size * sizeof(ObjRef));
-    if(vm.sda.sda == NULL)
+    if (vm.sda.sda == NULL)
         fatalError("vm_init_sda() malloc");
     return vm;
 }
@@ -57,7 +57,7 @@ NinjaVM vm_init_stack(NinjaVM vm) {
     vm.stack.frame_pointer = 0;
     vm.stack.size = STACK_MAX_ITEMS;
     vm.stack.stack = malloc(vm.stack.size * sizeof(StackSlot));
-    if(vm.stack.stack == NULL)
+    if (vm.stack.stack == NULL)
         fatalError("vm_init_stack() malloc");
     return vm;
 }
@@ -74,9 +74,9 @@ NinjaVM vm_init_debug(NinjaVM vm, bool debug) {
 }
 
 NinjaVM vm_init(NinjaVM vm, char file[], bool debug) {
-    if((vm.file = fopen(file, "r")) == NULL) {
+    if ((vm.file = fopen(file, "r")) == NULL) {
         printf("Error: cannot open code file '%s'", file);
-        exit(0);
+        exit(1);
     }
 
     vm = vm_check_binary_format(vm);
@@ -106,9 +106,9 @@ void free_sda() {
 
 NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
     bool debug = false;
-    if(argc != 1) {
-        for(int i = 1; i < argc; i++) {
-            if(argv[i][0] == '-') {
+    if (argc != 1) {
+        for (int i = 1; i < argc; i++) {
+            if (argv[i][0] == '-') {
                 if (strcmp(argv[i], "--help") == 0) {
                     printf("usage: ./njvm_start [option] [option] ...\n");
                     printf("  --debug          start virtual machine in debug mode\n");
@@ -121,15 +121,22 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
                 } else if (strcmp(argv[i], "--version") == 0) {
                     printf("Ninja Virtual Machine version 5 (compiled Sep 23 2015, 10:36:52)\n");
                     exit(0);
-                } else {
+                } else if (strcmp(argv[i], "--stack") == 0) {
+                    njvm.stack.size = atoi(argv[++i]);
+                } else if (strcmp(argv[i], "--heap") == 0) {
+                    i++;
+                } else if (strcmp(argv[i], "--gcpurge") == 0) {
+                    i++;
+                }else {
                     printf("unknown command line argument '%s', try './njvm_start --help'\n", argv[i]);
                     exit(0);
                 }
             }
+
         }
     } else {
         printf("Error: no code file specified");
-        exit(0);
+        exit(1);
     }
     vm = vm_init(vm, argv[argc - 1], debug);
     return vm;

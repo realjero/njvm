@@ -11,7 +11,9 @@
 #define BINARY_FORMAT "NJBF"
 
 typedef struct {
+    void *forward_pointer;
     unsigned int size;
+    bool broken_heart;
     unsigned char data[1];
 } *ObjRef;
 
@@ -32,7 +34,6 @@ typedef struct {
 typedef struct {
     unsigned int size;
     bool purge;
-    bool gcrunning;
     char *active;
     char *passive;
     char *next;

@@ -2,6 +2,7 @@
 #include "stack.h"
 #include "makro.h"
 #include <bigint.h>
+#include "heap.h"
 
 void instruction_HALT() {
     free_heap();
@@ -599,12 +600,12 @@ void instructions_run() {
         if (njvm.debugger.debug) {
             info:
             instruction_print(instruction);
-            printf("DEBUG: inspect, list, breakpoint, step, run, quit?\n");
+            printf("DEBUG: inspect, list, breakpoint, step, run, quit, copyrootobj??\n");
             scanf("%s", e);
 
             switch (e[0]) {
                 case 'i':
-                    printf("DEBUG [inspect]: stack, data, object?\n");
+                    printf("DEBUG [inspect]: stack, data, object\n");
                     scanf("%s", e);
                     if (e[0] == 's') stack_print();
                     if (e[0] == 'd') sda_print();
@@ -647,6 +648,9 @@ void instructions_run() {
                     break;
                 case 'q':
                     goto end_while;
+                case 'c':
+                    copyRootObjects();
+                    break;
             }
         }
 

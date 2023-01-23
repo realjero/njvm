@@ -10,13 +10,17 @@ void fatalError(char *msg) {
 void *newPrimObject(int dataSize) {
     ObjRef bigObjRef;
 
-    bigObjRef = alloc(sizeof(unsigned int) +
-                       dataSize * sizeof(unsigned char));
-    // printf("alloc= %p\n", bigObjRef);
+    bigObjRef = alloc(sizeof (void*) +
+            sizeof(unsigned int) +
+            sizeof (bool) +
+            dataSize * sizeof(unsigned char));
+
     if (bigObjRef == NULL) {
         fatalError("newPrimObject() got no memory");
     }
+    bigObjRef->forward_pointer = NULL;
     bigObjRef->size = dataSize;
+    bigObjRef->broken_heart = false;
     return bigObjRef;
 }
 
@@ -25,9 +29,19 @@ void *getPrimObjectDataPointer(void *obj) {
     return oo->data;
 }
 
-ObjRef newCompositeObject(unsigned int size) {
-    ObjRef cmpObj = alloc(sizeof(unsigned int) + (size * sizeof(void *)));
+ObjRef newCompositeObject(int size) {
+    ObjRef cmpObj = alloc(sizeof(void*) +
+                          sizeof(unsigned int) +
+                          sizeof (bool) +
+                          (size * sizeof(void *)));
+
+    if(cmpObj == NULL) {
+        fatalError("newCompositeObject() got no memory");
+    }
+
+    cmpObj->forward_pointer= NULL;
     cmpObj->size = size | MSB;
+    cmpObj->broken_heart = false;
     return cmpObj;
 }
 
@@ -44,4 +58,8 @@ ObjRef stack_pop_objref() {
 
     ObjRef object = stackSlot.u.objRef;
     return object;
+}
+
+int objref_data_size(ObjRef o) {
+    return IS_PRIMITIVE(o) ? o->size : GET_ELEMENT_COUNT(o);
 }

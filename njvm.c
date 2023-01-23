@@ -49,11 +49,9 @@ NinjaVM vm_init_heap(NinjaVM vm) {
     vm.heap.passive = malloc(vm.heap.size / 2);
     vm.heap.next = vm.heap.active;
     vm.heap.end = vm.heap.active + vm.heap.size / 2;
-    /* printf("vm.heap.active= %p \n"
-           "vm.heap.passive= %p \n"
-           "vm.heap.end= %p\n"
-           "vm.heap.size / 2 = 0x%x\n", vm.heap.active, vm.heap.passive, vm.heap.end, vm.heap.size / 2);
-           */
+    if(vm.heap.active == NULL || vm.heap.passive == NULL) {
+        perror("heap malloc()");
+    }
     return vm;
 }
 
@@ -150,8 +148,7 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
                     vm.heap.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--gcpurge") == 0) {
                     vm.heap.purge = true;
-                    i++;
-                }else {
+                } else {
                     printf("unknown command line argument '%s', try './njvm_start --help'\n", argv[i]);
                     exit(0);
                 }

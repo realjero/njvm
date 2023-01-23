@@ -13,7 +13,8 @@
 void fatalError(char *msg);		/* print a message and exit */
 void * newPrimObject(int dataSize);	/* create a new primitive object */
 void * getPrimObjectDataPointer(void * primObject);
-ObjRef newCompositeObject(unsigned int size);
+ObjRef newCompositeObject(int size);
 ObjRef stack_pop_objref();
+int objref_data_size(ObjRef o);
 
 #endif /* _SUPPORT_H_ */

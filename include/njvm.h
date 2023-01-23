@@ -32,6 +32,7 @@ typedef struct {
 typedef struct {
     unsigned int size;
     bool purge;
+    bool gcrunning;
     char *active;
     char *passive;
     char *next;

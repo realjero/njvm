@@ -27,21 +27,13 @@ void swap_heap() {
 
 ObjRef copyObjectToFreeMem(ObjRef src) {
     ObjRef dest;
-    int size;
     if (IS_PRIMITIVE(src)) {
         dest = newPrimObject(src->size);
-        size = sizeof(void *) +
-               sizeof(unsigned int) +
-               sizeof(bool) +
-               src->size * sizeof(unsigned char);
+        memcpy(dest->data, src->data, src->size);
     } else {
         dest = newCompositeObject(GET_ELEMENT_COUNT(src));
-        size = sizeof(void *) +
-               sizeof(unsigned int) +
-               sizeof(bool) +
-               (GET_ELEMENT_COUNT(src) * sizeof(void *));
+        memcpy(dest->data, src->data, (GET_ELEMENT_COUNT(src) * sizeof(void*)));
     }
-    memcpy(dest, src, size);
     return dest;
 }
 
@@ -66,14 +58,22 @@ void scan(void) {
     while (scan < njvm.heap.next) {
         ObjRef object = (ObjRef) scan;
         if (!IS_PRIMITIVE(object)) {
+            ObjRef *refs = GET_REFS_PTR(object);
             for (int i = 0; i < GET_ELEMENT_COUNT(object); i++) {
-                GET_REFS_PTR((ObjRef) scan)[i] = relocate(GET_REFS_PTR((ObjRef) scan)[i]);
+                refs[i] = relocate(refs[i]);
             }
         }
-        scan += sizeof(void *) +
-                sizeof(unsigned int) +
-                sizeof(bool) +
-                (GET_ELEMENT_COUNT(object) * sizeof(void *));
+        if(IS_PRIMITIVE(object)) {
+            scan += sizeof(void *) +
+                    sizeof(unsigned int) +
+                    sizeof(bool) +
+                    (object->size * sizeof(unsigned char));
+        } else {
+            scan += sizeof(void *) +
+                    sizeof(unsigned int) +
+                    sizeof(bool) +
+                    (GET_ELEMENT_COUNT(object) * sizeof(void *));
+        }
     }
 }
 
@@ -95,9 +95,44 @@ void copyRootObjects() {
 
 void garbage_collect() {
     swap_heap();
+    memset(njvm.heap.active, 0, njvm.heap.size / 2);
     copyRootObjects();
     scan();
     if (njvm.heap.purge) {
         memset(njvm.heap.passive, 0, njvm.heap.size / 2);
+    }
+}
+
+void print_heap() {
+    char *scan = njvm.heap.active;
+    printf("njvm.heap.active: %p\n", njvm.heap.active);
+    while (scan < njvm.heap.next) {
+        ObjRef obj = (ObjRef) scan;
+        if(obj != NULL) {
+            if (IS_PRIMITIVE(obj)) {
+                printf("(ObjRef) Address: %p, size: %d\n", (void *)obj, obj->size);
+                scan += sizeof(void *) +
+                        sizeof(unsigned int) +
+                        sizeof(bool) +
+                        (obj->size * sizeof(unsigned char));
+            } else {
+                printf("(CmpObj) Address: %p, size: %d ", (void *)obj, GET_ELEMENT_COUNT(obj));
+                for (int i = 0; i < GET_ELEMENT_COUNT(obj); i++) {
+                    if(GET_REFS_PTR(obj)[i] == NULL) {
+                        printf("GET_REFS_PTR(obj)[i]: NULL\t");
+                    } else {
+                        printf("GET_REFS_PTR(obj)[i]: %p\t", (void *)GET_REFS_PTR(obj)[i]);
+                    }
+
+                }
+                printf("\n");
+                scan += sizeof(void *) +
+                        sizeof(unsigned int) +
+                        sizeof(bool) +
+                        (GET_ELEMENT_COUNT(obj) * sizeof(void *));
+            }
+        } else {
+            scan += sizeof(unsigned char);
+        }
     }
 }

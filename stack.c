@@ -1,35 +1,44 @@
 #include "stack.h"
 #include "support.h"
 
-void stack_push(StackSlot slot) {
+void push_objref(ObjRef object) {
     if(njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
-
-    njvm.stack.stack[njvm.stack.stack_pointer] = slot;
+    njvm.stack.stack[njvm.stack.stack_pointer].isObjRef = true;
+    njvm.stack.stack[njvm.stack.stack_pointer].u.objRef = object;
     njvm.stack.stack_pointer++;
 }
 
-StackSlot stack_pop() {
+ObjRef pop_objref() {
     if(njvm.stack.stack_pointer == 0) {
         fatalError("stack underflow");
     }
     njvm.stack.stack_pointer--;
-    return njvm.stack.stack[njvm.stack.stack_pointer];
+    if(!njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
+        fatalError("ObjRef pop_objref() can't pop number");
+    }
+    return njvm.stack.stack[njvm.stack.stack_pointer].u.objRef;
 }
 
-StackSlot stackslot_new_obj(ObjRef object) {
-    StackSlot slot;
-    slot.isObjRef = true;
-    slot.u.objRef = object;
-    return slot;
+void push_number(int number) {
+    if(njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
+        fatalError("stack overflow");
+    }
+    njvm.stack.stack[njvm.stack.stack_pointer].isObjRef = false;
+    njvm.stack.stack[njvm.stack.stack_pointer].u.number = number;
+    njvm.stack.stack_pointer++;
 }
 
-StackSlot stackslot_new(unsigned int number) {
-    StackSlot slot;
-    slot.isObjRef = false;
-    slot.u.number = number;
-    return slot;
+int pop_number() {
+    if(njvm.stack.stack_pointer == 0) {
+        fatalError("stack underflow");
+    }
+    njvm.stack.stack_pointer--;
+    if(njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
+        fatalError("ObjRef pop_number can't pop object");
+    }
+    return njvm.stack.stack[njvm.stack.stack_pointer].u.number;
 }
 
 void stack_print() {

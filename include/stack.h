@@ -4,10 +4,10 @@
 
 #include "njvm.h"
 
-void stack_push(StackSlot s);
-StackSlot stack_pop();
-StackSlot stackslot_new_obj(ObjRef object);
-StackSlot stackslot_new(unsigned int n);
+void push_objref(ObjRef object);
+ObjRef pop_objref();
+void push_number(int number);
+int pop_number();
 void stack_print();
 void sda_print();
 

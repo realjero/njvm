@@ -5,6 +5,7 @@
 #include "heap.h"
 
 void instruction_HALT() {
+    garbage_collect();
     free_heap();
     free_program_memory();
     free_sda();
@@ -12,52 +13,52 @@ void instruction_HALT() {
 }
 
 void instruction_PUSHC(int immediate) {
-    bigFromInt(SIGN_EXTEND(immediate));
-    stack_push(stackslot_new_obj(bip.res));
+    bigFromInt(immediate);
+    push_objref(bip.res);
 }
 
 void instruction_ADD() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigAdd();
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_SUB() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigSub();
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_MUL() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigMul();
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_DIV() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigDiv();
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_MOD() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigDiv();
-    stack_push(stackslot_new_obj(bip.rem));
+    push_objref(bip.rem);
 }
 
 void instruction_RDINT() {
     bigRead(stdin);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_WRINT() {
-    bip.op1 = stack_pop_objref();
+    bip.op1 = pop_objref();
     bigPrint(stdout);
 }
 
@@ -67,11 +68,11 @@ void instruction_RDCHR() {
         fatalError("failed to read character");
     }
     bigFromInt((int) input);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_WRCHR() {
-    bip.op1 = stack_pop_objref();
+    bip.op1 = pop_objref();
     printf("%c", (char) bigToInt());
 }
 
@@ -79,155 +80,164 @@ void instruction_PUSHG(int immediate) {
     if(immediate < 0 || njvm.sda.size <= immediate) {
         fatalError("static data area index out of bound");
     }
-    stack_push(stackslot_new_obj(
-            njvm.sda.sda[immediate]));
+    push_objref(njvm.sda.sda[immediate]);
 }
 
 void instruction_POPG(int immediate) {
     if(immediate < 0 || njvm.sda.size <= immediate) {
         fatalError("static data area index out of bound");
     }
-    njvm.sda.sda[immediate] = stack_pop_objref();
+    njvm.sda.sda[immediate] = pop_objref();
 }
 
 void instruction_ASF(int immediate) {
-    if((njvm.stack.stack_pointer + immediate) >= njvm.stack.size) {
+    if((njvm.stack.stack_pointer + immediate) >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
     if(immediate < 0) {
         fatalError("stack frame cannot be negativ");
     }
-    stack_push(stackslot_new(njvm.stack.frame_pointer));
+    push_number(njvm.stack.frame_pointer);
     njvm.stack.frame_pointer = njvm.stack.stack_pointer;
     njvm.stack.stack_pointer += immediate;
+    // TEST
+    for (int i = njvm.stack.frame_pointer; i < njvm.stack.stack_pointer; i++) {
+        njvm.stack.stack[i].isObjRef = true;
+        njvm.stack.stack[i].u.objRef = NULL;
+    }
 }
 
 void instruction_RSF() {
     njvm.stack.stack_pointer = njvm.stack.frame_pointer;
-    njvm.stack.frame_pointer = stack_pop().u.number;
+    njvm.stack.frame_pointer = pop_number();
 }
 
 void instruction_PUSHL(int immediate) {
-    stack_push(njvm.stack.stack[njvm.stack.frame_pointer + SIGN_EXTEND(immediate)]);
+    push_objref(njvm.stack.stack[njvm.stack.frame_pointer + immediate].u.objRef);
 }
 
 void instruction_POPL(int immediate) {
-    njvm.stack.stack[njvm.stack.frame_pointer + SIGN_EXTEND(immediate)] = stack_pop();
+    njvm.stack.stack[njvm.stack.frame_pointer + immediate].u.objRef = pop_objref();
 }
 
 void instruction_EQ() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() == 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_NE() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();;
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() != 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_LT() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() < 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_LE() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() <= 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_GT() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() > 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_GE() {
-    bip.op2 = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
+    bip.op2 = pop_objref();
+    bip.op1 = pop_objref();
     bigFromInt(bigCmp() >= 0 ? 1 : 0);
-    stack_push(stackslot_new_obj(bip.res));
+    push_objref(bip.res);
 }
 
 void instruction_JMP(int immediate) {
+    // TEST
     njvm.program_memory.program_counter = immediate;
 }
 
 void instruction_BRF(int immediate) {
-    bip.op1 = stack_pop_objref();
+    bip.op1 = pop_objref();
     if (!bigToInt()) njvm.program_memory.program_counter = immediate;
 }
 
 void instruction_BRT(int immediate) {
-    bip.op1 = stack_pop_objref();
-    if (bigToInt() == 1) njvm.program_memory.program_counter = immediate;
+    bip.op1 = pop_objref();
+    if (bigToInt()) njvm.program_memory.program_counter = immediate;
 }
 
 void instruction_CALL(int immediate) {
-    stack_push(stackslot_new(njvm.program_memory.program_counter));
+    push_number(njvm.program_memory.program_counter);
     njvm.program_memory.program_counter = immediate;
 }
 
 void instruction_RET() {
-    njvm.program_memory.program_counter = stack_pop().u.number;
+    njvm.program_memory.program_counter = pop_number();
 }
 
 void instruction_DROP(int immediate) {
-    for (int i = 0; i < immediate; i++)
-        stack_pop();
+    for (int i = 0; i < immediate; i++) {
+        pop_objref();
+    }
 }
 
 void instruction_PUSHR() {
     if(njvm.rvr == NULL) {
         fatalError("rvr is null");
     }
-    stack_push(stackslot_new_obj(njvm.rvr));
+    push_objref(njvm.rvr);
 }
 
 void instruction_POPR() {
-    njvm.rvr = stack_pop_objref();
+    njvm.rvr = pop_objref();
 }
 
 void instruction_DUP() {
-    StackSlot s = stack_pop();
-    stack_push(s);
-    stack_push(s);
+    bip.op1 = pop_objref();
+    push_objref(bip.op1);
+    push_objref(bip.op1);
 }
 
 void instruction_NEW(int immediate) {
     ObjRef cmpObj = newCompositeObject(immediate);
-    for(int i = 0; i < immediate; i++) {
-        GET_REFS_PTR(cmpObj)[i] = malloc(8);
-    }
-    stack_push(stackslot_new_obj(cmpObj));
+    push_objref(cmpObj);
 }
 
 void instruction_GETF(int immediate) {
-    ObjRef cmpObj = stack_pop_objref();
+    ObjRef cmpObj = pop_objref();
+    if(cmpObj == NULL) {
+        fatalError("instruction_GETF cmpObj can't be NULL");
+    }
     if(IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
-    if(GET_ELEMENT_COUNT(cmpObj) <= immediate) {
+    if(GET_ELEMENT_COUNT(cmpObj) <= immediate || immediate < 0) {
         fatalError("compound object out of bounds");
     }
-    stack_push(stackslot_new_obj(GET_REFS_PTR(cmpObj)[immediate]));
+    push_objref(GET_REFS_PTR(cmpObj)[immediate]);
 }
 
 void instruction_PUTF(int immediate) {
-    ObjRef value = stack_pop_objref();
-    ObjRef cmpObj = stack_pop_objref();
+    ObjRef value = pop_objref();
+    ObjRef cmpObj = pop_objref();
+    if(cmpObj == NULL) {
+        fatalError("instruction_PUTF cmpObj can't be NULL");
+    }
     if(IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
-    if(GET_ELEMENT_COUNT(cmpObj) < immediate) {
+    if(GET_ELEMENT_COUNT(cmpObj) < immediate || immediate < 0) {
         fatalError("compound object index out of bounds");
     }
     GET_REFS_PTR(cmpObj)[immediate] = value;
@@ -235,17 +245,20 @@ void instruction_PUTF(int immediate) {
 
 void instruction_NEWA() {
     ObjRef array;
-    bip.op1 = stack_pop_objref();
+    bip.op1 = pop_objref();
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
     array = newCompositeObject(bigToInt());
-    stack_push(stackslot_new_obj(array));
+    push_objref(array);
 }
 
 void instruction_GETFA() {
-    bip.op1 = stack_pop_objref();
-    ObjRef array = stack_pop_objref();
+    bip.op1 = pop_objref();
+    ObjRef array = pop_objref();
+    if(array == NULL) {
+        fatalError("instruction_GETFA array can't be NULL");
+    }
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
@@ -254,14 +267,16 @@ void instruction_GETFA() {
     if(index >= GET_ELEMENT_COUNT(array) || index < 0) {
         fatalError("array index out of bounds");
     }
-
-    stack_push(stackslot_new_obj(GET_REFS_PTR(array)[index]));
+    push_objref(GET_REFS_PTR(array)[index]);
 }
 
 void instruction_PUTFA() {
-    ObjRef value = stack_pop_objref();
-    bip.op1 = stack_pop_objref();
-    ObjRef array = stack_pop_objref();
+    ObjRef value = pop_objref();
+    bip.op1 = pop_objref();
+    ObjRef array = pop_objref();
+    if(array == NULL) {
+        fatalError("instruction_PUTFA array can't be NULL");
+    }
     if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
         fatalError("object is not primitive");
     }
@@ -278,47 +293,47 @@ void instruction_PUTFA() {
 }
 
 void instruction_GETSZ() {
-    bip.op1 = stack_pop_objref();
+    bip.op1 = pop_objref();
     if(IS_PRIMITIVE((ObjRef) bip.op1)) {
         bigFromInt(-1);
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     } else {
         bigFromInt(GET_ELEMENT_COUNT((ObjRef) bip.op1));
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     }
 }
 
 void instruction_PUSHN() {
-    stack_push(stackslot_new_obj(NULL));
+    push_objref(NULL);
 }
 
 void instruction_REFEQ() {
-    bip.op1 = stack_pop_objref();
-    bip.op2 = stack_pop_objref();
+    bip.op1 = pop_objref();
+    bip.op2 = pop_objref();
     if(bip.op1 == bip.op2) {
         bigFromInt(1);
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     } else {
         bigFromInt(0);
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     }
 }
 
 void instruction_REFNE() {
-    bip.op1 = stack_pop_objref();
-    bip.op2 = stack_pop_objref();
+    bip.op1 = pop_objref();
+    bip.op2 = pop_objref();
     if(bip.op1 != bip.op2) {
         bigFromInt(1);
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     } else {
         bigFromInt(0);
-        stack_push(stackslot_new_obj(bip.res));
+        push_objref(bip.res);
     }
 }
 
 void instruction_execute(int instruction) {
     unsigned int opcode = instruction >> 24;
-    int immediate = IMMEDIATE(instruction);
+    int immediate = SIGN_EXTEND(IMMEDIATE(instruction));
     switch (opcode) {
         case HALT:
             instruction_HALT();
@@ -600,7 +615,7 @@ void instructions_run() {
         if (njvm.debugger.debug) {
             info:
             instruction_print(instruction);
-            printf("DEBUG: inspect, list, breakpoint, step, run, quit, copyrootobj??\n");
+            printf("DEBUG: inspect, list, breakpoint, step, run, quit, print_heap, garbage collect??\n");
             scanf("%s", e);
 
             switch (e[0]) {
@@ -648,9 +663,12 @@ void instructions_run() {
                     break;
                 case 'q':
                     goto end_while;
-                case 'c':
-                    copyRootObjects();
-                    break;
+                case 'p':
+                    print_heap();
+                    goto info;
+                case 'g':
+                    garbage_collect();
+                    goto info;
             }
         }
 

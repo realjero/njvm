@@ -11,16 +11,14 @@ void *newPrimObject(int dataSize) {
     ObjRef bigObjRef;
 
     bigObjRef = alloc(sizeof (void*) +
-            sizeof(unsigned int) +
-            sizeof (bool) +
-            dataSize * sizeof(unsigned char));
+                      sizeof(unsigned int) +
+                      sizeof (bool) +
+                      dataSize * sizeof(unsigned char));
 
     if (bigObjRef == NULL) {
         fatalError("newPrimObject() got no memory");
     }
-    bigObjRef->forward_pointer = NULL;
     bigObjRef->size = dataSize;
-    bigObjRef->broken_heart = false;
     return bigObjRef;
 }
 
@@ -39,27 +37,6 @@ ObjRef newCompositeObject(int size) {
         fatalError("newCompositeObject() got no memory");
     }
 
-    cmpObj->forward_pointer= NULL;
     cmpObj->size = size | MSB;
-    cmpObj->broken_heart = false;
     return cmpObj;
-}
-
-ObjRef stack_pop_objref() {
-    if(njvm.stack.stack_pointer == 0) {
-        fatalError("stack underflow");
-    }
-    njvm.stack.stack_pointer--;
-    StackSlot stackSlot = njvm.stack.stack[njvm.stack.stack_pointer];
-
-    if(!stackSlot.isObjRef) {
-        fatalError("popObjRef detected number on top of stack");
-    }
-
-    ObjRef object = stackSlot.u.objRef;
-    return object;
-}
-
-int objref_data_size(ObjRef o) {
-    return IS_PRIMITIVE(o) ? o->size : GET_ELEMENT_COUNT(o);
 }

@@ -143,7 +143,7 @@ NinjaVM arguments(NinjaVM vm, int argc, char *argv[]) {
                     printf("Ninja Virtual Machine version 5 (compiled Sep 23 2015, 10:36:52)\n");
                     exit(0);
                 } else if (strcmp(argv[i], "--stack") == 0) {
-                    njvm.stack.size = atoi(argv[++i]) * 1024;
+                    vm.stack.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--heap") == 0) {
                     vm.heap.size = atoi(argv[++i]) * 1024;
                 } else if (strcmp(argv[i], "--gcpurge") == 0) {

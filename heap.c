@@ -32,7 +32,7 @@ ObjRef copyObjectToFreeMem(ObjRef src) {
         memcpy(dest->data, src->data, src->size);
     } else {
         dest = newCompositeObject(GET_ELEMENT_COUNT(src));
-        memcpy(dest->data, src->data, (GET_ELEMENT_COUNT(src) * sizeof(void*)));
+        memcpy(dest->data, src->data, (GET_ELEMENT_COUNT(src) * sizeof(void *)));
     }
     return dest;
 }
@@ -63,7 +63,7 @@ void scan(void) {
                 refs[i] = relocate(refs[i]);
             }
         }
-        if(IS_PRIMITIVE(object)) {
+        if (IS_PRIMITIVE(object)) {
             scan += sizeof(void *) +
                     sizeof(unsigned int) +
                     sizeof(bool) +
@@ -108,20 +108,20 @@ void print_heap() {
     printf("njvm.heap.active: %p\n", njvm.heap.active);
     while (scan < njvm.heap.next) {
         ObjRef obj = (ObjRef) scan;
-        if(obj != NULL) {
+        if (obj != NULL) {
             if (IS_PRIMITIVE(obj)) {
-                printf("(ObjRef) Address: %p, size: %d\n", (void *)obj, obj->size);
+                printf("(ObjRef) Address: %p, size: %d\n", (void *) obj, obj->size);
                 scan += sizeof(void *) +
                         sizeof(unsigned int) +
                         sizeof(bool) +
                         (obj->size * sizeof(unsigned char));
             } else {
-                printf("(CmpObj) Address: %p, size: %d ", (void *)obj, GET_ELEMENT_COUNT(obj));
+                printf("(CmpObj) Address: %p, size: %d ", (void *) obj, GET_ELEMENT_COUNT(obj));
                 for (int i = 0; i < GET_ELEMENT_COUNT(obj); i++) {
-                    if(GET_REFS_PTR(obj)[i] == NULL) {
+                    if (GET_REFS_PTR(obj)[i] == NULL) {
                         printf("GET_REFS_PTR(obj)[i]: NULL\t");
                     } else {
-                        printf("GET_REFS_PTR(obj)[i]: %p\t", (void *)GET_REFS_PTR(obj)[i]);
+                        printf("GET_REFS_PTR(obj)[i]: %p\t", (void *) GET_REFS_PTR(obj)[i]);
                     }
 
                 }

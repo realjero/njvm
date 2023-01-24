@@ -64,7 +64,7 @@ void instruction_WRINT() {
 
 void instruction_RDCHR() {
     char input;
-    if(!scanf("%c", &input)) {
+    if (!scanf("%c", &input)) {
         fatalError("failed to read character");
     }
     bigFromInt((int) input);
@@ -77,24 +77,24 @@ void instruction_WRCHR() {
 }
 
 void instruction_PUSHG(int immediate) {
-    if(immediate < 0 || njvm.sda.size <= immediate) {
+    if (immediate < 0 || njvm.sda.size <= immediate) {
         fatalError("static data area index out of bound");
     }
     push_objref(njvm.sda.sda[immediate]);
 }
 
 void instruction_POPG(int immediate) {
-    if(immediate < 0 || njvm.sda.size <= immediate) {
+    if (immediate < 0 || njvm.sda.size <= immediate) {
         fatalError("static data area index out of bound");
     }
     njvm.sda.sda[immediate] = pop_objref();
 }
 
 void instruction_ASF(int immediate) {
-    if((njvm.stack.stack_pointer + immediate) >= njvm.stack.size / sizeof(StackSlot)) {
+    if ((njvm.stack.stack_pointer + immediate) >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
-    if(immediate < 0) {
+    if (immediate < 0) {
         fatalError("stack frame cannot be negativ");
     }
     push_number(njvm.stack.frame_pointer);
@@ -193,7 +193,7 @@ void instruction_DROP(int immediate) {
 }
 
 void instruction_PUSHR() {
-    if(njvm.rvr == NULL) {
+    if (njvm.rvr == NULL) {
         fatalError("rvr is null");
     }
     push_objref(njvm.rvr);
@@ -216,13 +216,13 @@ void instruction_NEW(int immediate) {
 
 void instruction_GETF(int immediate) {
     ObjRef cmpObj = pop_objref();
-    if(cmpObj == NULL) {
+    if (cmpObj == NULL) {
         fatalError("instruction_GETF cmpObj can't be NULL");
     }
-    if(IS_PRIMITIVE(cmpObj)) {
+    if (IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
-    if(GET_ELEMENT_COUNT(cmpObj) <= immediate || immediate < 0) {
+    if (GET_ELEMENT_COUNT(cmpObj) <= immediate || immediate < 0) {
         fatalError("compound object out of bounds");
     }
     push_objref(GET_REFS_PTR(cmpObj)[immediate]);
@@ -231,13 +231,13 @@ void instruction_GETF(int immediate) {
 void instruction_PUTF(int immediate) {
     ObjRef value = pop_objref();
     ObjRef cmpObj = pop_objref();
-    if(cmpObj == NULL) {
+    if (cmpObj == NULL) {
         fatalError("instruction_PUTF cmpObj can't be NULL");
     }
-    if(IS_PRIMITIVE(cmpObj)) {
+    if (IS_PRIMITIVE(cmpObj)) {
         fatalError("not a compound object");
     }
-    if(GET_ELEMENT_COUNT(cmpObj) < immediate || immediate < 0) {
+    if (GET_ELEMENT_COUNT(cmpObj) < immediate || immediate < 0) {
         fatalError("compound object index out of bounds");
     }
     GET_REFS_PTR(cmpObj)[immediate] = value;
@@ -246,7 +246,7 @@ void instruction_PUTF(int immediate) {
 void instruction_NEWA() {
     ObjRef array;
     bip.op1 = pop_objref();
-    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+    if (!IS_PRIMITIVE((ObjRef) bip.op1)) {
         fatalError("object is not primitive");
     }
     array = newCompositeObject(bigToInt());
@@ -256,15 +256,15 @@ void instruction_NEWA() {
 void instruction_GETFA() {
     bip.op1 = pop_objref();
     ObjRef array = pop_objref();
-    if(array == NULL) {
+    if (array == NULL) {
         fatalError("instruction_GETFA array can't be NULL");
     }
-    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+    if (!IS_PRIMITIVE((ObjRef) bip.op1)) {
         fatalError("object is not primitive");
     }
     int index = bigToInt();
 
-    if(index >= GET_ELEMENT_COUNT(array) || index < 0) {
+    if (index >= GET_ELEMENT_COUNT(array) || index < 0) {
         fatalError("array index out of bounds");
     }
     push_objref(GET_REFS_PTR(array)[index]);
@@ -274,18 +274,18 @@ void instruction_PUTFA() {
     ObjRef value = pop_objref();
     bip.op1 = pop_objref();
     ObjRef array = pop_objref();
-    if(array == NULL) {
+    if (array == NULL) {
         fatalError("instruction_PUTFA array can't be NULL");
     }
-    if(!IS_PRIMITIVE((ObjRef)bip.op1)) {
+    if (!IS_PRIMITIVE((ObjRef) bip.op1)) {
         fatalError("object is not primitive");
     }
     int index = bigToInt();
 
-    if(IS_PRIMITIVE(array)) {
+    if (IS_PRIMITIVE(array)) {
         fatalError("array is not compound object");
     }
-    if(index >= GET_ELEMENT_COUNT(array) || index < 0) {
+    if (index >= GET_ELEMENT_COUNT(array) || index < 0) {
         fatalError("array index out of bounds");
     }
 
@@ -294,7 +294,7 @@ void instruction_PUTFA() {
 
 void instruction_GETSZ() {
     bip.op1 = pop_objref();
-    if(IS_PRIMITIVE((ObjRef) bip.op1)) {
+    if (IS_PRIMITIVE((ObjRef) bip.op1)) {
         bigFromInt(-1);
         push_objref(bip.res);
     } else {
@@ -310,7 +310,7 @@ void instruction_PUSHN() {
 void instruction_REFEQ() {
     bip.op1 = pop_objref();
     bip.op2 = pop_objref();
-    if(bip.op1 == bip.op2) {
+    if (bip.op1 == bip.op2) {
         bigFromInt(1);
         push_objref(bip.res);
     } else {
@@ -322,7 +322,7 @@ void instruction_REFEQ() {
 void instruction_REFNE() {
     bip.op1 = pop_objref();
     bip.op2 = pop_objref();
-    if(bip.op1 != bip.op2) {
+    if (bip.op1 != bip.op2) {
         bigFromInt(1);
         push_objref(bip.res);
     } else {
@@ -607,7 +607,8 @@ void instructions_run() {
         instruction = njvm.program_memory.instructions[njvm.program_memory.program_counter];
         njvm.program_memory.program_counter++;
 
-        if(njvm.debugger.breakpoint_set == true && njvm.debugger.breakpoint == (njvm.program_memory.program_counter - 1)) {
+        if (njvm.debugger.breakpoint_set == true &&
+            njvm.debugger.breakpoint == (njvm.program_memory.program_counter - 1)) {
             njvm.debugger.debug = true;
             njvm.debugger.breakpoint_set = false;
         }
@@ -627,9 +628,9 @@ void instructions_run() {
                     if (e[0] == 'o') {
                         printf("Object reference:\n");
                         int *address;
-                        scanf("%p", (void**)&address);
+                        scanf("%p", (void **) &address);
 
-                        if((ObjRef)address == NULL) {
+                        if ((ObjRef) address == NULL) {
                             if (!IS_PRIMITIVE((ObjRef) address)) {
                                 printf("size = %d\n", GET_ELEMENT_COUNT((ObjRef) address));
                                 for (int i = 0; i < GET_ELEMENT_COUNT((ObjRef) address); i++) {

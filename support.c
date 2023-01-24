@@ -10,9 +10,9 @@ void fatalError(char *msg) {
 void *newPrimObject(int dataSize) {
     ObjRef bigObjRef;
 
-    bigObjRef = alloc(sizeof (void*) +
+    bigObjRef = alloc(sizeof(void *) +
                       sizeof(unsigned int) +
-                      sizeof (bool) +
+                      sizeof(bool) +
                       dataSize * sizeof(unsigned char));
 
     if (bigObjRef == NULL) {
@@ -28,12 +28,12 @@ void *getPrimObjectDataPointer(void *obj) {
 }
 
 ObjRef newCompositeObject(int size) {
-    ObjRef cmpObj = alloc(sizeof(void*) +
+    ObjRef cmpObj = alloc(sizeof(void *) +
                           sizeof(unsigned int) +
-                          sizeof (bool) +
+                          sizeof(bool) +
                           (size * sizeof(void *)));
 
-    if(cmpObj == NULL) {
+    if (cmpObj == NULL) {
         fatalError("newCompositeObject() got no memory");
     }
 

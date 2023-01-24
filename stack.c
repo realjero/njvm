@@ -2,7 +2,7 @@
 #include "support.h"
 
 void push_objref(ObjRef object) {
-    if(njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
+    if (njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
     njvm.stack.stack[njvm.stack.stack_pointer].isObjRef = true;
@@ -11,18 +11,18 @@ void push_objref(ObjRef object) {
 }
 
 ObjRef pop_objref() {
-    if(njvm.stack.stack_pointer == 0) {
+    if (njvm.stack.stack_pointer == 0) {
         fatalError("stack underflow");
     }
     njvm.stack.stack_pointer--;
-    if(!njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
+    if (!njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
         fatalError("ObjRef pop_objref() can't pop number");
     }
     return njvm.stack.stack[njvm.stack.stack_pointer].u.objRef;
 }
 
 void push_number(int number) {
-    if(njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
+    if (njvm.stack.stack_pointer >= njvm.stack.size / sizeof(StackSlot)) {
         fatalError("stack overflow");
     }
     njvm.stack.stack[njvm.stack.stack_pointer].isObjRef = false;
@@ -31,11 +31,11 @@ void push_number(int number) {
 }
 
 int pop_number() {
-    if(njvm.stack.stack_pointer == 0) {
+    if (njvm.stack.stack_pointer == 0) {
         fatalError("stack underflow");
     }
     njvm.stack.stack_pointer--;
-    if(njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
+    if (njvm.stack.stack[njvm.stack.stack_pointer].isObjRef) {
         fatalError("ObjRef pop_number can't pop object");
     }
     return njvm.stack.stack[njvm.stack.stack_pointer].u.number;

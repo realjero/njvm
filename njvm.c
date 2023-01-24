@@ -49,7 +49,7 @@ NinjaVM vm_init_heap(NinjaVM vm) {
     vm.heap.passive = malloc(vm.heap.size / 2);
     vm.heap.next = vm.heap.active;
     vm.heap.end = vm.heap.active + vm.heap.size / 2;
-    if(vm.heap.active == NULL || vm.heap.passive == NULL) {
+    if (vm.heap.active == NULL || vm.heap.passive == NULL) {
         perror("heap malloc()");
     }
     return vm;

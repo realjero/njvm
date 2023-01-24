@@ -48,6 +48,7 @@
 #define REFNE 41
 
 void instructions_run();
+
 void instructions_print();
 
 #endif //INSTRUCTION_H

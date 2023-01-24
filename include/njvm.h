@@ -69,7 +69,6 @@ typedef struct {
 } NinjaVM;
 
 
-
 extern NinjaVM njvm;
 
 int njvm_start(int argc, char *argv[]);

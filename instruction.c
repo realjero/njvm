@@ -1,8 +1,9 @@
+#include <bigint.h>
 #include "instruction.h"
 #include "stack.h"
 #include "makro.h"
-#include <bigint.h>
 #include "heap.h"
+#include "gc.h"
 
 void instruction_HALT() {
     garbage_collect();
@@ -163,7 +164,6 @@ void instruction_GE() {
 }
 
 void instruction_JMP(int immediate) {
-    // TEST
     njvm.program_memory.program_counter = immediate;
 }
 
@@ -503,13 +503,13 @@ void instruction_print(int instruction) {
             printf("%03d:\twrchr\n", njvm.program_memory.program_counter - 1);
             break;
         case PUSHG:
-            printf("%03d:\tpushg\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tpushg\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case POPG:
-            printf("%03d:\tpopg\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tpopg\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case ASF:
-            printf("%03d:\tasf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tasf\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case RSF:
             printf("%03d:\trsf\n", njvm.program_memory.program_counter - 1);
@@ -518,7 +518,7 @@ void instruction_print(int instruction) {
             printf("%03d:\tpushl\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case POPL:
-            printf("%03d:\tpopl\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tpopl\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case EQ:
             printf("%03d:\teq\n", njvm.program_memory.program_counter - 1);
@@ -539,22 +539,22 @@ void instruction_print(int instruction) {
             printf("%03d:\tge\n", njvm.program_memory.program_counter - 1);
             break;
         case JMP:
-            printf("%03d:\tjmp\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tjmp\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case BRF:
-            printf("%03d:\tbrf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tbrf\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case BRT:
-            printf("%03d:\tbrt\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tbrt\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case CALL:
-            printf("%03d:\tcall\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tcall\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case RET:
             printf("%03d:\tret\n", njvm.program_memory.program_counter - 1);
             break;
         case DROP:
-            printf("%03d:\tdrop\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tdrop\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case PUSHR:
             printf("%03d:\tpushr\n", njvm.program_memory.program_counter - 1);
@@ -566,13 +566,13 @@ void instruction_print(int instruction) {
             printf("%03d:\tdup\n", njvm.program_memory.program_counter - 1);
             break;
         case NEW:
-            printf("%03d:\tnew\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tnew\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case GETF:
-            printf("%03d:\tgetf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tgetf\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case PUTF:
-            printf("%03d:\tputf\t%d\n", njvm.program_memory.program_counter - 1, IMMEDIATE(instruction));
+            printf("%03d:\tputf\t%d\n", njvm.program_memory.program_counter - 1, SIGN_EXTEND(IMMEDIATE(instruction)));
             break;
         case NEWA:
             printf("%03d:\tnewa\n", njvm.program_memory.program_counter - 1);

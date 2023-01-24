@@ -8,10 +8,6 @@
 
 void *alloc(int size);
 
-void copyRootObjects();
-
-void garbage_collect();
-
 void print_heap();
 
 #endif //HEAP_H

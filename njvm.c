@@ -3,7 +3,7 @@
 #include "support.h"
 
 /*
- * gcc -g -Wall -std=c99 -pedantic -I./include -L./lib njvm.c heap.c instruction.c stack.c support.c -lbigint -o vm
+ * gcc -g -Wall -std=c99 -pedantic -I./include -L./lib njvm.c heap.c instruction.c stack.c support.c gc.c -lbigint -o vm
  */
 
 NinjaVM njvm;
